@@ -2,7 +2,70 @@ import { TryCatch } from "../middlewares/error.js";
 import { Product } from "../models/product.js";
 import ErrorHandler from "../utils/utility-class.js";
 import { rm } from "fs";
+import { myCache } from "../app.js";
+import { InvalidateCache } from "../utils/features.js";
 // import {faker} from '@faker-js/faker';
+// Revalidate on New,Upadte,Delete Product & on New Order
+export const getlatestProduct = TryCatch(async (req, res, next) => {
+    let product;
+    if (myCache.has("latest-product"))
+        product = JSON.parse(myCache.get("latest-product"));
+    else {
+        /// 1 => Assending -1 => Decending
+        product = await Product.find({}).sort({ createdAt: -1 }).limit(5);
+        myCache.set("latest-product", JSON.stringify(product));
+    }
+    return res.status(200).json({
+        success: true,
+        product,
+    });
+});
+// Revalidate on New,Upadte,Delete Product & on New Order
+export const getAllCategories = TryCatch(async (req, res, next) => {
+    let categories;
+    if (myCache.has("categories"))
+        categories = JSON.parse(myCache.get("categories"));
+    else {
+        // Ama 2 Rete Tay Map use kari sakay Pan Am jo 5 lepyop hoy to 5 batave  Atale ano anther Opation che set use karvo
+        /// Pan am apne ak Onther use karsu distinct
+        categories = await Product.distinct("category");
+        myCache.set("categories", JSON.stringify(categories));
+    }
+    return res.status(200).json({
+        success: true,
+        categories,
+    });
+});
+// Revalidate on New,Upadte,Delete Product & on New Order
+export const getAdminProducts = TryCatch(async (req, res, next) => {
+    let product;
+    if (myCache.has("all-product"))
+        product = JSON.parse(myCache.get("all-product"));
+    else {
+        product = await Product.find({});
+        myCache.set("all-product", JSON.stringify(product));
+    }
+    return res.status(200).json({
+        success: true,
+        product,
+    });
+});
+export const getSingleProduct = TryCatch(async (req, res, next) => {
+    let product;
+    const id = req.params.id;
+    if (myCache.has(`product-${id}`))
+        product = JSON.parse(myCache.get(`product-${id}`));
+    else {
+        product = await Product.findById(req.params.id);
+        if (!product)
+            return next(new ErrorHandler("Product Not Found", 404));
+        myCache.set(`product-${id}`, JSON.stringify(product));
+    }
+    return res.status(200).json({
+        success: true,
+        product,
+    });
+});
 export const newProduct = TryCatch(async (req, res, next) => {
     const { name, price, stock, category } = req.body;
     const photo = req.file;
@@ -21,42 +84,10 @@ export const newProduct = TryCatch(async (req, res, next) => {
         category: category.toLowerCase(),
         photo: photo.path,
     });
+    await InvalidateCache({ product: true });
     return res.status(201).json({
         success: true,
         message: "Product Created Successfully",
-    });
-});
-export const getlatestProduct = TryCatch(async (req, res, next) => {
-    /// 1 => Assending -1 => Decending
-    const product = await Product.find({}).sort({ createdAt: -1 }).limit(5);
-    return res.status(200).json({
-        success: true,
-        product,
-    });
-});
-export const getAllCategories = TryCatch(async (req, res, next) => {
-    // Ama 2 Rete Tay Map use kari sakay Pan Am jo 5 lepyop hoy to 5 batave  Atale ano anther Opation che set use karvo
-    /// Pan am apne ak Onther use karsu distinct
-    const categories = await Product.distinct("category");
-    return res.status(200).json({
-        success: true,
-        categories,
-    });
-});
-export const getAdminProducts = TryCatch(async (req, res, next) => {
-    const product = await Product.find({});
-    return res.status(200).json({
-        success: true,
-        product,
-    });
-});
-export const getSingleProduct = TryCatch(async (req, res, next) => {
-    const product = await Product.findById(req.params.id);
-    if (!product)
-        return next(new ErrorHandler("Product Not Found", 404));
-    return res.status(200).json({
-        success: true,
-        product,
     });
 });
 export const updateProduct = TryCatch(async (req, res, next) => {
@@ -83,6 +114,7 @@ export const updateProduct = TryCatch(async (req, res, next) => {
         product.name = category;
     await product.save();
     // console.log("Dh")
+    await InvalidateCache({ product: true });
     return res.status(200).json({
         success: true,
         message: "Product Upadated Successfully",
@@ -96,6 +128,7 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
         console.log("Product Photo Deleted");
     });
     await Product.deleteOne();
+    await InvalidateCache({ product: true });
     return res.status(200).json({
         success: true,
         message: "Product Deleted Successfully",
@@ -168,5 +201,5 @@ export const getAllProducts = TryCatch(async (req, res, next) => {
 //   }
 //   console.log({succecss : true});
 // };
-// // 
+// //
 // deleteRendomsProduct(38)
