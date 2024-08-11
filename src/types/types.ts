@@ -20,23 +20,20 @@ export type ControllerType = (
   next: NextFunction
 ) => Promise<void | Response<any, Record<string, any>>>;
 
-
 export type SearchRequestQuary = {
-  search?: string,
-  price?: string,
-  category?: string,
-  sort?: string,
-  page?: string,
+  search?: string;
+  price?: string;
+  category?: string;
+  sort?: string;
+  page?: string;
+};
 
-
-}
-
-export interface BaseQuery{
-  name?:{
+export interface BaseQuery {
+  name?: {
     $regex: string;
     $options: string;
   };
-  price?:{ $lte : number; };
+  price?: { $lte: number };
   category?: string;
 }
 
@@ -44,4 +41,34 @@ export type InvalidateCacheProps = {
   product?: boolean;
   order?: boolean;
   admin?: boolean;
+  userId?: string;
+  orderId?: string;
+};
+
+// destrucher to the ShippingInfo and  orderitems
+export type OrederItemsType = {
+  name: string;
+  photo: string;
+  price: number;
+  quantity: number;
+  productId: string;
+};
+
+export type ShippingInfoType = {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  pinCode: number;
+};
+
+export interface NewOrderRequestBody {
+  shippingInfo: ShippingInfoType;
+  user: String;
+  subtotal: number;
+  tax: number;
+  shippingCharges: number;
+  discount: number;
+  total: number;
+  orderItems: OrederItemsType[];
 }

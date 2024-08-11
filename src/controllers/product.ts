@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { TryCatch } from "../middlewares/error.js";
-import { ParsedQs } from "qs";
+// import { ParsedQs } from "qs";
 import {
   BaseQuery,
   NewProductRequestBody,
@@ -167,7 +167,7 @@ export const deleteProduct = TryCatch(async (req, res, next) => {
   });
 
   await Product.deleteOne();
-  await InvalidateCache({ product : true});
+  // await InvalidateCache({ product : true});
 
   return res.status(200).json({
     success: true,
