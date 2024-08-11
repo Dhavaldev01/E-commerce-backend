@@ -11,22 +11,29 @@ export const connectDB = async (uri) => {
         .then((c) => console.log(`DB Connected to ${c.connection.host}`))
         .catch((e) => console.log(e));
 };
-export const InvalidateCache = async ({ product, order, admin, userId, orderId }) => {
+export const InvalidateCache = async ({ product, order, admin, userId, orderId, productId }) => {
     try {
         if (product) {
             const productKeys = [
                 "latest-product",
                 "categories",
                 "all-product",
+                `product-${productId}`
             ];
+            if (typeof productId === "string")
+                productKeys.push(`product-${productId}`);
+            if (typeof productId === "object")
+                productId.forEach((i) => productKeys.push(`product-${i}`));
             const products = await Product.find({}).select("_id");
-            products.forEach(element => {
-                /// const id  =  element._id
-                //    const id =  `product-${element._id}`
-                productKeys.push(`product-${element._id}`);
-            });
+            // products.forEach(element => {
+            //     /// const id  =  element._id
+            //     //    const id =  `product-${element._id}`
+            //     // productKeys.push(`product-${element._id}`)
+            // });
+            /// foreach replac with  Productkeys => `product-${productId}`
             myCache.del(productKeys);
         }
+        ;
         if (order) {
             const orderskey = [
                 'all-orders',

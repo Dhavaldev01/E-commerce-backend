@@ -43,6 +43,7 @@ export type InvalidateCacheProps = {
   admin?: boolean;
   userId?: string;
   orderId?: string;
+  productId?: string | string[] ;
 };
 
 // destrucher to the ShippingInfo and  orderitems

@@ -98,7 +98,7 @@ export const myOrders = TryCatch(
       return next(new ErrorHandler("Please Enter All Fields" , 400 ));
   
   
-      await Order.create({shippingInfo,
+      const order  = await Order.create({shippingInfo,
           orderItems,
           user,
           subtotal,
@@ -109,12 +109,14 @@ export const myOrders = TryCatch(
         });
   
       await reduceStock(orderItems);
-  
+
       await InvalidateCache({ 
         product : true , 
         order: true , 
         admin: true , 
-        userId: user.toString()});
+        userId: user.toString(),
+        productId: order.orderItems.map((i)=> String(i.productId))
+      });
   
       return res.status(201).json({
           success: true , message : "Order Placed Successfully"
@@ -161,9 +163,8 @@ export const myOrders = TryCatch(
     async (req, res, next) => {
 
         const {id} = req.params;
-        // const order = await Order.findById(id);
-        const order = await Order.findById('66b896d5d0143c3d6220d742');
-console.log(order); // Should return null if not found
+        const order = await Order.findById(id);
+        
         if(!order) return next(new ErrorHandler("Order Not Found" , 404));
 
         await order.deleteOne();
@@ -173,7 +174,7 @@ console.log(order); // Should return null if not found
         product : false , 
         order: true , 
         admin: true , 
-        userId:order.user,
+        userId:order.user.toString(),
         orderId: order._id.toString(),
     });
   
