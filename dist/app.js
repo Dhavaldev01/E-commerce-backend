@@ -9,6 +9,7 @@ import morgan from 'morgan';
 import userRoute from "./routes/user.js";
 import productRoute from "./routes/products.js";
 import orderRoute from "./routes/order.js";
+import paymentRoute from "./routes/payment.js";
 // env file no Path Devano
 config({
     path: "./.env"
@@ -26,6 +27,7 @@ app.use(morgan('dev'));
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/product", productRoute);
 app.use("/api/v1/order", orderRoute);
+app.use("/api/v1/payment", paymentRoute);
 app.get("/", (req, res) => {
     res.send("API Working With /api/v1");
 });

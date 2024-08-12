@@ -10,7 +10,7 @@ export const adminOnly = TryCatch(async (req, res, next) => {
     if (!user)
         return next(new ErrorHandler("Please check id", 401));
     if (user.role !== "admin")
-        return next(new ErrorHandler("you don't login , Onaly Admin are Loging", 401));
+        return next(new ErrorHandler("you don't login , Onaly Admin are Loging", 403));
     next(); // Isme pahel chek that Admin or not after thar getAllUsers api heet
 });
 // / "/api/v1/user/dhfodf"  => that called id
