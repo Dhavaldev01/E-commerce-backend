@@ -20,7 +20,7 @@ export const InvalidateCache = async ({
     admin,
     userId,
     orderId,
-    productId
+    productId,
 }: InvalidateCacheProps) => {
     try {
         if (product) {
@@ -28,13 +28,14 @@ export const InvalidateCache = async ({
                 "latest-product",
                 "categories",
                 "all-product",
-                `product-${productId}`
+                `product-${productId}`,
             ];
 
+            if (typeof productId === "string")
+                productKeys.push(`product-${productId}`);
 
-            if(typeof productId === "string") productKeys.push(`product-${productId}`);
-
-            if(typeof productId === "object") productId.forEach((i)=> productKeys.push(`product-${i}`))
+            if (typeof productId === "object")
+                productId.forEach((i) => productKeys.push(`product-${i}`));
             const products = await Product.find({}).select("_id");
 
             // products.forEach(element => {
@@ -43,19 +44,18 @@ export const InvalidateCache = async ({
             //     // productKeys.push(`product-${element._id}`)
             // });
             /// foreach replac with  Productkeys => `product-${productId}`
-            
+
             myCache.del(productKeys);
-        };
+        }
 
         if (order) {
             const orderskey: string[] = [
-                'all-orders',
+                "all-orders",
                 `my-orders-${userId}`,
-                `order-${orderId}`
+                `order-${orderId}`,
             ];
 
-
-            // upadate karyu ap pan chale 
+            // upadate karyu ap pan chale
             // const Orders = await Order.find({}).select("_id");
             // Orders.forEach(element => {
             //     /// const id  =  element._id
@@ -64,32 +64,50 @@ export const InvalidateCache = async ({
             // });
 
             myCache.del(orderskey);
-
         }
         if (admin) {
         }
     } catch (error) {
-        console.error('Error invalidating cache:', error);
+        console.error("Error invalidating cache:", error);
     }
 };
 
-
 export const reduceStock = async (orderItems: OrederItemsType[]) => {
-
     for (let i = 0; i < orderItems.length; i++) {
         const order = orderItems[i];
         const product = await Product.findById(order.productId);
         if (!product) throw new Error("Product Not Found");
         product.stock -= order.quantity;
-        await product.save()
+        await product.save();
     }
 };
 
-
-export const calculatePercentage = (thisMonth:number, lastMonth:number)=>{
-
-    if(lastMonth === 0) return thisMonth*100;
-    const percent = ((thisMonth - lastMonth) / lastMonth )* 100;
+export const calculatePercentage = (thisMonth: number, lastMonth: number) => {
+    if (lastMonth === 0) return thisMonth * 100;
+    const percent = ((thisMonth - lastMonth) / lastMonth) * 100;
     return Number(percent.toFixed(0));
-
 };
+
+
+export const getInventories = async ({
+    categories,
+    productCount,
+}: {
+    categories: string[];
+    productCount: number;
+}) => {
+    const categoriesCountPromise = categories.map((category) =>
+        Product.countDocuments({ category })
+    );
+
+    const categoriesCount = await Promise.all(categoriesCountPromise);
+
+    const categoryCount: Record<string, number>[] = [];
+
+    categories.forEach((category, i) => {
+        categoryCount.push({
+            [category]: Math.round((categoriesCount[i] / productCount) * 100),
+        });
+    });
+    return categoryCount;
+}

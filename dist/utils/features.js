@@ -11,14 +11,14 @@ export const connectDB = async (uri) => {
         .then((c) => console.log(`DB Connected to ${c.connection.host}`))
         .catch((e) => console.log(e));
 };
-export const InvalidateCache = async ({ product, order, admin, userId, orderId, productId }) => {
+export const InvalidateCache = async ({ product, order, admin, userId, orderId, productId, }) => {
     try {
         if (product) {
             const productKeys = [
                 "latest-product",
                 "categories",
                 "all-product",
-                `product-${productId}`
+                `product-${productId}`,
             ];
             if (typeof productId === "string")
                 productKeys.push(`product-${productId}`);
@@ -33,14 +33,13 @@ export const InvalidateCache = async ({ product, order, admin, userId, orderId, 
             /// foreach replac with  Productkeys => `product-${productId}`
             myCache.del(productKeys);
         }
-        ;
         if (order) {
             const orderskey = [
-                'all-orders',
+                "all-orders",
                 `my-orders-${userId}`,
-                `order-${orderId}`
+                `order-${orderId}`,
             ];
-            // upadate karyu ap pan chale 
+            // upadate karyu ap pan chale
             // const Orders = await Order.find({}).select("_id");
             // Orders.forEach(element => {
             //     /// const id  =  element._id
@@ -53,7 +52,7 @@ export const InvalidateCache = async ({ product, order, admin, userId, orderId, 
         }
     }
     catch (error) {
-        console.error('Error invalidating cache:', error);
+        console.error("Error invalidating cache:", error);
     }
 };
 export const reduceStock = async (orderItems) => {
@@ -71,4 +70,15 @@ export const calculatePercentage = (thisMonth, lastMonth) => {
         return thisMonth * 100;
     const percent = ((thisMonth - lastMonth) / lastMonth) * 100;
     return Number(percent.toFixed(0));
+};
+export const getInventories = async ({ categories, productCount, }) => {
+    const categoriesCountPromise = categories.map((category) => Product.countDocuments({ category }));
+    const categoriesCount = await Promise.all(categoriesCountPromise);
+    const categoryCount = [];
+    categories.forEach((category, i) => {
+        categoryCount.push({
+            [category]: Math.round((categoriesCount[i] / productCount) * 100),
+        });
+    });
+    return categoryCount;
 };
