@@ -49,6 +49,11 @@ export const InvalidateCache = async ({ product, order, admin, userId, orderId, 
             myCache.del(orderskey);
         }
         if (admin) {
+            myCache.del(["admin-stats",
+                "admin-pie-charts",
+                "admin-bar-charts",
+                "admin-line-charts"
+            ]);
         }
     }
     catch (error) {
@@ -68,7 +73,7 @@ export const reduceStock = async (orderItems) => {
 export const calculatePercentage = (thisMonth, lastMonth) => {
     if (lastMonth === 0)
         return thisMonth * 100;
-    const percent = ((thisMonth - lastMonth) / lastMonth) * 100;
+    const percent = (thisMonth / lastMonth) * 100;
     return Number(percent.toFixed(0));
 };
 export const getInventories = async ({ categories, productCount, }) => {
@@ -81,4 +86,20 @@ export const getInventories = async ({ categories, productCount, }) => {
         });
     });
     return categoryCount;
+};
+export const getChartData = ({ length, docArr, today, property }) => {
+    const data = new Array(length).fill(0);
+    docArr.forEach((i) => {
+        const creationDate = i.createdAt;
+        const monthDiff = (today.getMonth() - creationDate.getMonth() + 12) % 12;
+        if (monthDiff < length) {
+            if (property) {
+                data[length - monthDiff - 1] += i[property]; // i.discount matab Undefine nathi
+            }
+            else {
+                data[length - monthDiff - 1] += 1;
+            }
+        }
+    });
+    return data;
 };

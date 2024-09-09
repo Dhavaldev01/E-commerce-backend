@@ -110,7 +110,7 @@ export const myOrders = TryCatch(
   
       await reduceStock(orderItems);
 
-      await InvalidateCache({ 
+      InvalidateCache({ 
         product : true , 
         order: true , 
         admin: true , 
@@ -146,7 +146,7 @@ export const myOrders = TryCatch(
         }
 
       await order.save();
-      await InvalidateCache({ 
+      InvalidateCache({ 
         product : false , 
         order: true , 
         admin: true , 
@@ -170,7 +170,7 @@ export const myOrders = TryCatch(
         await order.deleteOne();
         
       await order.save();
-      await InvalidateCache({ 
+      InvalidateCache({ 
         product : false , 
         order: true , 
         admin: true , 
